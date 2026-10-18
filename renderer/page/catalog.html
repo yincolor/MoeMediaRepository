@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/Theme.css">
+    <script src="../js/components/icon_btn.js"></script>
+    <script src="../js/components/text_btn.js"></script>
+    <script src="../js/components/poster_card.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/gamepad.js"></script>
+    <script src="../js/keyboard_simulate.js"></script>
+    <script src="../js/page/catalog.js"></script>
+</head>
+<body>
+    <div class="page">
+        <div class="content" data-empty-text="没有符合条件的影视"></div>
+        <dialog id="catalog-menu">
+            <section class="btn-row">
+                <icon-btn data-action="close_dialog" icon-name="关闭" icon-size="1em">关闭弹窗</icon-btn>
+                <icon-btn data-action="back_page" icon-name="撤销" icon-size="1em">返回上一页</icon-btn>
+            </section>
+            <section class="selector-row">
+                <span>类型：</span>
+                <text-btn selected>不限</text-btn>
+                <text-btn>电影</text-btn>
+                <text-btn>电视剧</text-btn>
+                <text-btn>纪录片</text-btn>
+                <text-btn>动漫</text-btn>
+                <text-btn>短剧</text-btn>
+            </section>
+            <section class="selector-row">
+                <span>区域：</span>
+                <text-btn>不限</text-btn>
+                <text-btn data-keyword="中国,国产,大陆,内地">大陆</text-btn>
+                <text-btn data-keyword="香港,台湾,港台">港台</text-btn>
+                <text-btn data-keyword="日本">日本</text-btn>
+                <text-btn data-keyword="韩国">韩国</text-btn>
+                <text-btn data-keyword="欧美,美国,英国,法国,德国,瑞典,瑞士,捷克,巴西,波兰,挪威,荷兰,芬兰,丹麦,智利,匈牙利,比利时,奥地利,新西兰,阿根廷,以色列,意大利,西班牙,乌克兰,加拿大,澳大利亚,哥伦比亚,俄罗斯,土耳其,UK,USA,U.S.A,Germany">欧美</text-btn>
+                <text-btn data-keyword="越南,老挝,泰国,缅甸,文莱,东帝汶,新加坡,柬埔寨,马来西亚,印度尼西亚">东南亚</text-btn>
+                <text-btn data-keyword="非洲,埃及,南非,利比亚,摩洛哥,阿尔及利亚,尼日尔,尼日利亚,加纳">非洲</text-btn>
+                <text-btn data-keyword="印度">印度</text-btn>
+                <text-btn>其他</text-btn>
+            </section>
+            <section class="selector-row">
+                <span>字母：</span>
+                <text-btn>不限</text-btn>
+                <text-btn>A</text-btn><text-btn>B</text-btn> <text-btn>C</text-btn> <text-btn>D</text-btn> <text-btn>E</text-btn> <text-btn>F</text-btn>
+                <text-btn>G</text-btn> <text-btn>H</text-btn> <text-btn>I</text-btn> <text-btn>J</text-btn> <text-btn>K</text-btn> <text-btn>L</text-btn>
+                <text-btn>M</text-btn> <text-btn>N</text-btn> <text-btn>O</text-btn> <text-btn>P</text-btn> <text-btn>Q</text-btn> <text-btn>R</text-btn>
+                <text-btn>S</text-btn> <text-btn>T</text-btn> <text-btn>U</text-btn> <text-btn>V</text-btn> <text-btn>W</text-btn> <text-btn>X</text-btn>
+                <text-btn>Y</text-btn> <text-btn>Z</text-btn> <text-btn>0</text-btn> <text-btn>1</text-btn> <text-btn>2</text-btn> <text-btn>3</text-btn>
+                <text-btn>4</text-btn> <text-btn>5</text-btn> <text-btn>6</text-btn> <text-btn>7</text-btn> <text-btn>8</text-btn> <text-btn>9</text-btn>
+            </section>
+            <section class="selector-row" id="year-selector">
+                <span>年份：</span>
+                <text-btn>不限</text-btn>
+            </section>
+            <section class="selector-row">
+                <span>标签：</span>
+                <text-btn>不限</text-btn>
+                <text-btn>科幻</text-btn> <text-btn>战斗</text-btn> <text-btn>校园</text-btn> <text-btn>冒险</text-btn> <text-btn>热血</text-btn> <text-btn>治愈</text-btn>
+                <text-btn>剧情</text-btn> 
+                <text-btn data-keyword="喜剧,搞笑">喜剧</text-btn> 
+                <text-btn data-keyword="恋爱,爱情">恋爱</text-btn> 
+                <text-btn data-keyword="悬疑,推理,侦探">悬疑</text-btn> 
+                <text-btn>动作</text-btn> 
+                <text-btn>后宫</text-btn>
+                <text-btn data-keyword="玄幻,修仙,仙侠">玄幻</text-btn> 
+                <text-btn data-keyword="奇幻,异界,魔法">奇幻</text-btn> 
+                <text-btn data-keyword="惊悚,恐怖,恐惧">惊悚</text-btn> 
+                <text-btn>犯罪</text-btn> 
+                <text-btn data-keyword="历史,年代穿越,古代">历史</text-btn> 
+                <text-btn data-keyword="社会,都市,现代,民国">社会</text-btn>
+                <text-btn data-keyword="儿童,家庭">儿童</text-btn> 
+                <text-btn>家庭</text-btn> 
+                <text-btn data-keyword="歌舞,音乐,歌唱,舞蹈">歌舞</text-btn> 
+                <text-btn data-keyword="战争,抗日,抗战">战争</text-btn> 
+                <text-btn>励志</text-btn> 
+                <text-btn>妖怪</text-btn>
+                <text-btn>游戏</text-btn>
+                <text-btn data-keyword="女性向,女频,言情">女性向</text-btn>
+            </section>
+
+            <section class="btn-row">
+                <icon-btn data-action="confirm_filter" icon-name="对号">确认筛选条件</icon-btn>
+            </section>
+        </dialog>
+    </div>
+
+    <style>
+        .content{
+            flex: 1 1 auto;
+            min-height: 0px;
+            min-width: 0px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+            gap: 1.5em;
+            padding: 2em;
+            justify-items: center;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+        .content.empty{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .content.empty::after{
+            content: attr(data-empty-text);
+            color: #aaa;
+            font-size: 1.2em;
+        }
+        #catalog-menu:not([open]){
+            display: none;
+        }
+        #catalog-menu[open]{
+            display: flex;
+            flex-direction: column;
+            gap: 0.8em;
+            padding: 1.5em;
+            max-height: 90dvh;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+        #catalog-menu .btn-row{
+            display: flex;
+            gap: 1em;
+        }
+        #catalog-menu .selector-row{
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.4em;
+        }
+        #catalog-menu .selector-row > span{
+            flex: 0 0 auto;
+            margin-right: 0.5em;
+        }
+    </style>
+</body>
+</html> 

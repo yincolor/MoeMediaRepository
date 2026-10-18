@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史记录</title>
+    <link rel="stylesheet" href="../css/Theme.css">
+    <script src="../js/components/poster_card.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/gamepad.js"></script>
+    <script src="../js/keyboard_simulate.js"></script>
+    <script src="../js/page/history.js"></script>
+</head>
+
+<body>
+    <div class="page-container history-page">
+        <div class="page-body" data-empty-text="没有历史记录"></div>
+    </div>
+
+    <style>
+        .page-container{
+            width: 100dvw;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        .page-body{
+            flex: 1 1 auto;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+            gap: 1.5em;
+            padding: 2em;
+            justify-items: center;
+            align-content: start;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+        .page-body.empty{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .page-body.empty::after{
+            content: attr(data-empty-text);
+            color: #aaa;
+            font-size: 1.2em;
+        }
+    </style>
+</body>
+
+</html>

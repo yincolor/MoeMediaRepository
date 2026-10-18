@@ -1,0 +1,70 @@
+:root{
+    /*默认统一样式*/
+    font-family: "Noto Sans CJK SC", "Source Han Sans CN", "Microsoft YaHei", "黑体", sans-serif;
+    --border-radius: 5px;
+    --font-size: 20px; 
+    --icon-size: 2em;
+    --padding: 0.8em; 
+    --gap: 0.5em; 
+    
+    /* 海报卡片样式 */
+    --card-width:20em;
+    --card-title-area-height:2em;
+    --card-title-area-bg-color: #555;
+    --card-title-area-color: #eee;
+    --card-title-font-size: 30px;
+    
+    /* 普通按钮样式 */
+    --btn-hover-bg-color: #2323ff; 
+    --btn-focus-bg-color: var(--btn-hover-bg-color); 
+    --btn-selected-bg-color: #ffaa00; 
+    --text-btn-width: 200px;
+    --text-btn-height:100px;
+    /* 图标按钮样式 */
+    --icon-btn-icon-size: var(--icon-size); 
+}
+
+
+/* 页面样式控制 */
+body,html{
+    margin: 0; padding: 0;
+    background-color: #232323;
+    color: #fff;
+
+    scrollbar-width: none;
+    height: 100dvh;
+    width: 100dvw;
+}
+.page{
+    width: 100dvw;
+    height: 100dvh;
+}
+dialog{
+    background-color: #232323;
+    border-radius: 10px;
+    border: 1px solid #fff;
+    color: #fff;
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    max-width: 76em;
+    outline: none;
+    
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* gap: 1em; */
+}
+
+poster-card.focus, icon-btn.focus, text-btn.focus{
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+    background-color: var(--btn-focus-bg-color);
+}
+
+.scrollable-y{ /*可纵向滚动的*/
+    scrollbar-width: none;
+    overflow-y: scroll;
+}
+.visibility-hide{ /*隐藏组件*/
+    visibility: hidden;
+}

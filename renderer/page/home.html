@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页</title>
+    <link rel="stylesheet" href="../css/Theme.css">
+    <script src="../js/components/icon_btn.js"></script>
+    <script src="../js/components/poster_card.js"></script>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/gamepad.js"></script>
+    <script src="../js/keyboard_simulate.js"></script>
+    <script src="../js/page/home.js"></script>
+
+</head>
+
+<body>
+    <div class="page home-page">
+        <div class="titlebar">
+            <icon-btn class="item focus" icon-name="首页">首页</icon-btn>
+            <icon-btn class="item" data-action="goto_page" data-page="catalog.html" icon-name="标签">目录</icon-btn>
+            <icon-btn class="item" data-action="goto_page" data-page="update.html" icon-name="日历">一周更新</icon-btn>
+            <icon-btn class="item" data-action="goto_page" data-page="history.html" icon-name="历史记录">观看历史</icon-btn>
+            <div class="titlebar-spacer"></div>
+            <icon-btn class="item" data-action="exit_app" icon-name="登出">退出软件</icon-btn>
+        </div>
+        <div class="page-body" data-empty-text="没有收藏，请添加"></div>
+    </div>
+
+    <style>
+        .page{
+            display: flex;
+            flex-direction: column;
+        }
+        .titlebar{
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: row;
+            padding: var(--padding);
+        }
+        .titlebar-spacer{
+            flex: 1 1 auto;
+        }
+        .page-body{
+            flex: 1 1 auto;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+            gap: 1.5em;
+            padding: 2em;
+            justify-items: center;
+            align-content: start;
+            overflow-y: scroll;
+            scrollbar-width: none;
+        }
+        .page-body.empty{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .page-body.empty::after{
+            content: attr(data-empty-text);
+            color: #aaa;
+            font-size: 1.2em;
+        }
+    </style>
+</body>
+
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一周更新</title>
+    <link rel="stylesheet" href="../css/Theme.css">
+    <script src="../js/components/poster_card.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/gamepad.js"></script>
+    <script src="../js/keyboard_simulate.js"></script>
+    <script src="../js/page/update.js"></script>
+</head>
+
+<body>
+    <div class="page-container update-page">
+        <div class="page-body" data-empty-text="没有本周的记录"></div>
+    </div>
+
+    <style>
+        .page-container{
+            width: 100dvw;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+        }
+        .page-body{
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: scroll;
+            scrollbar-width: none;
+            padding: 1em;
+        }
+        .line{
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            color: #fff;
+        }
+        .line span{
+            flex: 0 0 auto;
+            padding: 0 0.5em;
+        }
+        .line hr{
+            flex: 1 1 auto;
+            border: none;
+            border-top: 1px solid #555;
+        }
+        .card-container{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--card-width), 1fr));
+            gap: 1.5em;
+            padding: 1em;
+            justify-items: center;
+        }
+        .page-body.empty::after{
+            content: attr(data-empty-text);
+            display: block;
+            text-align: center;
+            color: #aaa;
+            font-size: 1.2em;
+            padding: 2em;
+        }
+    </style>
+</body>
+
+</html>

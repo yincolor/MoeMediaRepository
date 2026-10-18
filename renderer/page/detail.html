@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>详情</title>
+    <link rel="stylesheet" href="../css/Theme.css">
+    <script src="../js/components/icon_btn.js"></script>
+    <script src="../js/components/text_btn.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/gamepad.js"></script>
+    <script src="../js/keyboard_simulate.js"></script>
+    <script src="../js/page/detail.js"></script>
+</head>
+
+<body>
+    <div class="page detail-page">
+        <div class="page-header">
+            <div class="info-container">
+                <h3 class="title"></h3>
+                <div class="info"></div>
+                <p class="intro"></p>
+                <div class="control-bar">
+                    <icon-btn class="favorite-btn" data-action="toggle_favorite" icon-name="未收藏" icon-size="4em" layout-type="IconTopTextBottom">未收藏</icon-btn>
+                    <icon-btn class="play-btn" data-action="play" icon-name="播放" icon-size="4em" layout-type="IconTopTextBottom">开始播放</icon-btn>
+                </div>
+            </div>
+            <div class="poster-container">
+                <img src="../img/default.png" alt="">
+            </div>
+        </div>
+        <div class="page-body">
+            <div class="series-header">选集列表</div>
+            <div class="site-container"></div>
+            <div class="series-container"></div>
+        </div>
+    </div>
+
+    <style>
+        .page{
+            display: flex;
+            flex-direction: column;
+        }
+        .page-header {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: row;
+            padding: var(--padding);
+            gap: var(--gap);
+        }
+        .poster-container img{
+            height: 400px;
+        }
+        .info-container{
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+    <style>
+        .page-body{
+            flex: 1 1 auto; 
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: var(--padding);
+            gap: var(--gap);
+        }
+        .site-container{
+            flex: 0 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--gap);
+        }
+        .series-container{
+            flex: 1 1 auto;  
+            min-height: 0;
+            
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            
+            grid-auto-rows: max-content; /* 行高 = 内容高度，不分配剩余空间 */
+            align-content: start;        /* 所有行靠顶部排列，不拉伸填满容器 */
+            align-items: start;          /* 单元格内的按钮顶部对齐，不 stretch */
+
+            padding: var(--padding);
+            gap: var(--gap);
+            scrollbar-width: none;
+        }
+    </style>
+</body>
+
+</html>

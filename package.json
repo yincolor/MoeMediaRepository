@@ -1,0 +1,60 @@
+{
+  "name": "moemedia",
+  "version": "0.2.0",
+  "description": "anime video player (Electron)",
+  "license": "AGPL-3.0-or-later",
+  "author": "ty",
+  "type": "commonjs",
+  "main": "main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "electron .",
+    "test:unit": "node --test tests/*.test.js",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "productName": "MoeMediaRepository",
+    "appId": "com.ty.moemedia",
+    "icon": "main/icon.png",
+    "files": [
+      "main/*.js",
+      "main/icon.png",
+      "preload/*.js",
+      "renderer/**/*",
+      "resources/**/*",
+      "!media.db",
+      "!media.db.gz",
+      "!sql_cfg.json",
+      "!site_cfg.json",
+      "!update_url_prefix",
+      "!tests/**/*",
+      "!*.md",
+      "!.editorconfig"
+    ],
+    "extraResources": [
+      { "from": "media.db.gz", "to": "media.db.gz" },
+      { "from": "sql_cfg.json", "to": "sql_cfg.json" },
+      { "from": "site_cfg.json", "to": "site_cfg.json" },
+      { "from": "update_url_prefix", "to": "update_url_prefix" }
+    ],
+    "asarUnpack": [
+      "**/node_modules/node-liblzma/**/*"
+    ],
+    "linux": {
+      "category": "Player;Video;TV;Electron;",
+      "target": [
+        "tar.gz"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^42.11.3",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "axios": "^1.18.1",
+    "axios-retry": "^4.5.0",
+    "better-sqlite3": "^13.0.1",
+    "node-liblzma": "^5.1.1"
+  }
+}

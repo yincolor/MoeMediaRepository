@@ -1,0 +1,42 @@
+{
+    "file_name": "media_001.db",
+    "tables": [
+        {
+            "name": "t_info",
+            "columns": [
+                { "name": "vid", "type": "TEXT PRIMARY KEY", "comment": "影视剧在数据库中的ID" },
+                {"name":"media_type", "type": "TEXT", "comment": "影视剧类型（电影、电视剧、动漫、纪录片、短剧）" }, 
+                { "name": "name", "type": "TEXT", "comment": "标题名称（中文，base64编码后的字符串）" },
+                { "name": "subname", "type": "TEXT", "comment": "副标题名称（中文列表，元素用base64编码为base64字符串，然后用逗号分隔）" },
+                {"name": "name_en", "type": "TEXT", "comment": "英文名称（英文，base64编码后的字符串）"},
+                {"name":"letter", "type": "TEXT", "comment": "英文名称的首字母" },
+                {"name": "tags", "type": "TEXT", "comment": "标签组，使用逗号分隔"},
+                {"name":"actor", "type": "TEXT", "comment": "演员（base64编码后的字符串）"},
+                {"name":"director", "type": "TEXT", "comment": "导演（base64编码后的字符串）"},
+                {"name":"writer", "type": "TEXT", "comment": "编剧（base64编码后的字符串）"},
+                {"name":"pubdate", "type": "TEXT", "comment": "发布日期" },
+                {"name":"area", "type": "TEXT", "comment": "出品地区" },
+                {"name": "year", "type": "TEXT", "comment": "出品年份"},
+                {"name":"time", "type": "TEXT", "comment": "更新时间（yyyy-MM-dd）"},
+                {"name":"intro", "type": "TEXT", "comment": "简介（base64编码后的字符串）"}
+            ]
+        },
+        {
+            "name":"t_poster",
+            "columns": [
+                { "name": "id", "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+                { "name": "vid", "type": "TEXT", "comment": "动画在数据库中的ID" },
+                {"name": "url", "type": "TEXT", "comment": "海报URL"}
+            ]
+        },
+        {
+            "name":"t_playlist",
+            "columns": [
+                { "name": "id", "type": "INTEGER PRIMARY KEY AUTOINCREMENT" },
+                { "name": "vid", "type": "TEXT", "comment": "动画在数据库中的ID" },
+                { "name": "site_name", "type": "TEXT", "comment": "播放链接组来源网站名称" },
+                { "name": "url_list", "type": "TEXT", "comment": "播放链接组的格式化文本（影视名称和m3u8文件URL的格式化文本，存储的是使用base64编码后的字符串）" }
+            ]
+        }
+    ]
+}
