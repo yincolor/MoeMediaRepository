@@ -35,6 +35,29 @@
         }
     };
 
+    // var processBar = {
+    //     getInstance: function () {
+    //         const layer = controlLayer.getInstance();
+    //         return layer ? layer.querySelector('.process') : null;
+    //     },
+    //     getInput: function () {
+    //         const bar = processBar.getInstance();
+    //         return bar ? bar.querySelector('input[type="range"]') : null;
+    //     },
+    //     show: function () {
+    //         const bar = processBar.getInstance();
+    //         if (bar) bar.classList.remove('visibility-hide');
+    //     },
+    //     hide: function () {
+    //         const bar = processBar.getInstance();
+    //         if (bar) bar.classList.add('visibility-hide');
+    //     },
+    //     setProcess: function (floatNum) {
+    //         const input = processBar.getInput();
+    //         if (input) input.value = floatNum;
+    //     }
+    // };
+
     var processBar = {
         getInstance: function () {
             const layer = controlLayer.getInstance();
@@ -43,6 +66,14 @@
         getInput: function () {
             const bar = processBar.getInstance();
             return bar ? bar.querySelector('input[type="range"]') : null;
+        },
+        getCurTimeElement: function () {
+            const bar = processBar.getInstance();
+            return bar ? bar.querySelector('.cur_time') : null;
+        },
+        getEndTimeElement: function () {
+            const bar = processBar.getInstance();
+            return bar ? bar.querySelector('.end_time') : null;
         },
         show: function () {
             const bar = processBar.getInstance();
@@ -55,6 +86,18 @@
         setProcess: function (floatNum) {
             const input = processBar.getInput();
             if (input) input.value = floatNum;
+        },
+        /**
+         * 更新当前播放时间 / 总时长文本
+         * @param {string} curText 当前时间文本，如 "00:01:23"
+         * @param {string} endText 总时长文本，如 "00:45:00"
+         */
+        setTimeText: function (curText, endText) {
+            const curEl = processBar.getCurTimeElement();
+            const endEl = processBar.getEndTimeElement();
+            // 文本未变化时不写 DOM，减少重排
+            if (curEl && curEl.textContent !== curText) curEl.textContent = curText;
+            if (endEl && endEl.textContent !== endText) endEl.textContent = endText;
         }
     };
 
@@ -71,12 +114,12 @@
             const btn = playstop.getInstance();
             if (btn) btn.setAttribute('icon-name', iconName);
         },
-        show: function(){
+        show: function () {
             const layer = controlLayer.getInstance();
             const playstop = layer.querySelector('.playstop');
             if (playstop) playstop.classList.remove('visibility-hide');
         },
-        hide: function(){
+        hide: function () {
             const layer = controlLayer.getInstance();
             const playstop = layer.querySelector('.playstop');
             if (playstop) playstop.classList.add('visibility-hide');
@@ -169,16 +212,63 @@
         playstop.setStatus(isPlaying ? '暂停' : '播放');
     }
 
+    /**
+     * 将秒数格式化为 HH:MM:SS
+     * @param {number} seconds - 秒数
+     * @param {string} invalidText - 秒数无效（NaN / Infinity / 负数）时的显示文本
+     * @returns {string}
+     */
+    function formatTime(seconds, invalidText) {
+        if (typeof seconds !== 'number' || !isFinite(seconds) || seconds < 0) {
+            return invalidText || '--:--:--';
+        }
+
+        var total = Math.floor(seconds);
+        var h = Math.floor(total / 3600);
+        var m = Math.floor((total % 3600) / 60);
+        var s = total % 60;
+
+        function pad(n) {
+            return n < 10 ? '0' + n : String(n);
+        }
+
+        return pad(h) + ':' + pad(m) + ':' + pad(s);
+    }
+
     function updateProgressBar() {
         var video = getVideoElement();
         if (!video) return;
 
         var duration = video.duration || 0;
         var currentTime = video.currentTime || 0;
-        var percent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-        processBar.setProcess(percent);
+        // 直播流 duration 可能为 Infinity，此时进度条按 0 处理
+        var percent = (isFinite(duration) && duration > 0)
+            ? (currentTime / duration) * 100
+            : 0;
+
+        processBar.setProcess(percent); // 设置进度条进度
+
+        /* 设置时间 */
+        var endText = formatTime(duration, '--:--:--');
+        var curText = formatTime(currentTime, '00:00:00');
+        // 直播/未知时长时，当前时间也按已播放时长正常显示即可
+        processBar.setTimeText(curText, endText);
     }
+
+    // function updateProgressBar() {
+    //     var video = getVideoElement();
+    //     if (!video) return;
+
+    //     var duration = video.duration || 0;
+    //     var currentTime = video.currentTime || 0;
+    //     var percent = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+    //     processBar.setProcess(percent); // 设置进度条进度
+
+    //     /* 设置时间 */
+
+    // }
 
     function updateVolumeDisplay() {
         var video = getVideoElement();
@@ -373,6 +463,8 @@
         }
 
         video.addEventListener('timeupdate', updateProgressBar);
+        video.addEventListener('durationchange', updateProgressBar); 
+        
         video.addEventListener('play', function () {
             console.log('[play.js] bindVideoEvents: 视频开始播放');
             updatePlayButton(true);
