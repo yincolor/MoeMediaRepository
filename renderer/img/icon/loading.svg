@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="48" height="48"
+     viewBox="0 0 48 48"
+     role="img"
+     aria-label="加载中"
+     style="color:#3b82f6;">
+  <!-- 浅色轨道 -->
+  <circle cx="24" cy="24" r="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-opacity="0.2"
+          stroke-width="4"/>
+
+  <!-- 旋转的加载圆环 -->
+  <circle cx="24" cy="24" r="18"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+          stroke-linecap="round"
+          stroke-dasharray="85 28.13">
+    <animateTransform
+        attributeName="transform"
+        type="rotate"
+        from="0 24 24"
+        to="360 24 24"
+        dur="1s"
+        repeatCount="indefinite"/>
+  </circle>
+</svg>

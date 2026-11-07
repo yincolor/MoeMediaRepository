@@ -27,7 +27,7 @@ const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp'];
 const DEFAULT_EXTENSION = '.jpg';
 
 /** 同时下载海报的并发数 */
-const DOWNLOAD_CONCURRENCY = 6;
+const DOWNLOAD_CONCURRENCY = 9;
 
 /**
  * 确保海报目录存在

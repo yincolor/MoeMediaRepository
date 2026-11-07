@@ -17,8 +17,7 @@
     "appId": "com.ty.moemedia",
     "icon": "main/icon.png",
     "files": [
-      "main/*.js",
-      "main/icon.png",
+      "main/**/*",
       "preload/*.js",
       "renderer/**/*",
       "resources/**/*",
@@ -48,8 +47,8 @@
     }
   },
   "devDependencies": {
-    "electron": "^42.11.3",
-    "electron-builder": "^24.13.3"
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0"
   },
   "dependencies": {
     "axios": "^1.18.1",

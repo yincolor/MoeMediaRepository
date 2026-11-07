@@ -4,8 +4,8 @@
  * 播放页结构（play.html）：
  *   - video：通过 hls.js 播放 m3u8 HLS 流媒体（不支持时回退原生 HLS）
  *   - .control-layer
- *       - .process > input[type=range]  进度条
- *       - .playstop > icon-btn          播放 / 暂停按钮
+ *       - .process > .playstop > icon-btn + .cur_time + input[type=range] + .end_time
+ *           进度条整条（含播放 / 暂停按钮、时间文本）
  *       - .volume > icon-btn + .volumn-value  音量显示
  *
  * 手柄映射：
@@ -16,7 +16,9 @@
  *   - gp:up / gp:down：音量加 / 减 10（仅点击响应，长按不响应）
  *   - gp:back：返回上一页
  *
- * 各控制组件在状态变化时单独显示，3 秒无操作后自动隐藏。
+ * 播放 / 暂停按钮 .playstop 位于 .process 内部，因此播放、暂停、拖动进度、
+ * 快进 / 快退等所有与进度相关的操作统一只控制 .process 的显示与隐藏；
+ * 音量组件 .volume 独立显示。无操作后自动隐藏。
  */
 (function () {
     'use strict';
@@ -113,17 +115,9 @@
         setStatus: function (iconName) {
             const btn = playstop.getInstance();
             if (btn) btn.setAttribute('icon-name', iconName);
-        },
-        show: function () {
-            const layer = controlLayer.getInstance();
-            const playstop = layer.querySelector('.playstop');
-            if (playstop) playstop.classList.remove('visibility-hide');
-        },
-        hide: function () {
-            const layer = controlLayer.getInstance();
-            const playstop = layer.querySelector('.playstop');
-            if (playstop) playstop.classList.add('visibility-hide');
         }
+        // .playstop 是 .process 的子元素，其显示 / 隐藏由 processBar 统一控制，
+        // 不再单独维护 show / hide。
     };
 
     var volume = {
@@ -146,6 +140,21 @@
         hide: function () {
             const vol = volume.getInstance();
             if (vol) vol.classList.add('visibility-hide');
+        }
+    };
+
+    var buffering = {
+        getInstance: function () {
+            var layer = controlLayer.getInstance();
+            return layer ? layer.querySelector('.buffering') : null;
+        },
+        show: function () {
+            var el = buffering.getInstance();
+            if (el) el.classList.remove('visibility-hide');
+        },
+        hide: function () {
+            var el = buffering.getInstance();
+            if (el) el.classList.add('visibility-hide');
         }
     };
 
@@ -178,13 +187,11 @@
 
     /* ======================== 控制组件显隐 ======================== */
 
+    /**
+     * 显示控制条（.process 内包含进度条与播放 / 暂停按钮）
+     */
     function showProcessBar() {
         processBar.show();
-        resetControlBarHideTimer();
-    }
-
-    function showPlaystop() {
-        playstop.show();
         resetControlBarHideTimer();
     }
 
@@ -194,8 +201,8 @@
     }
 
     function hideControlComponents() {
+        // .playstop 在 .process 内部，随 .process 一起隐藏
         processBar.hide();
-        playstop.hide();
         volume.hide();
     }
 
@@ -203,7 +210,7 @@
         if (controlBarHideTimerId) {
             clearTimeout(controlBarHideTimerId);
         }
-        controlBarHideTimerId = setTimeout(hideControlComponents, 3000);
+        controlBarHideTimerId = setTimeout(hideControlComponents, 4000);
     }
 
     /* ======================== 播放状态 ======================== */
@@ -314,7 +321,7 @@
             video.pause();
             updatePlayButton(false);
         }
-        showPlaystop();
+        showProcessBar();
     }
 
     /* ======================== 方向键处理 ======================== */
@@ -463,28 +470,47 @@
         }
 
         video.addEventListener('timeupdate', updateProgressBar);
-        video.addEventListener('durationchange', updateProgressBar); 
-        
+        video.addEventListener('durationchange', updateProgressBar);
+
         video.addEventListener('play', function () {
             console.log('[play.js] bindVideoEvents: 视频开始播放');
             updatePlayButton(true);
-            showPlaystop();
+            showProcessBar();
+        });
+        video.addEventListener('playing', function () {
+            buffering.hide(); 
         });
         video.addEventListener('pause', function () {
             console.log('[play.js] bindVideoEvents: 视频暂停');
             updatePlayButton(false);
-            showPlaystop();
+            showProcessBar();
+            buffering.hide();
         });
         video.addEventListener('ended', function () {
             console.log('[play.js] bindVideoEvents: 视频播放结束');
             updatePlayButton(false);
             processBar.setProcess(0);
             showProcessBar();
-            showPlaystop();
+            buffering.hide();
         });
         video.addEventListener('loadedmetadata', function () {
             console.log('[play.js] bindVideoEvents: 视频元数据加载完成');
             updateProgressBar();
+        });
+
+        video.addEventListener('waiting', () =>{
+            console.log('[play.js] 缓冲中…');
+            buffering.show();
+        });
+        video.addEventListener('stalled', () =>{
+            console.log('[play.js] 网络卡顿，仍在加载…');
+            buffering.show();
+        });
+        video.addEventListener('seeked', ()=>{
+            buffering.hide();
+        });
+        video.addEventListener('error', ()=>{
+            buffering.hide();
         });
     }
 
@@ -580,7 +606,6 @@
 
         hideControlComponents();
         showProcessBar();
-        showPlaystop();
         startPlay();
         console.log('[play.js] init: 播放器初始化完成');
     }

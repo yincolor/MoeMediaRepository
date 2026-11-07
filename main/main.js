@@ -25,6 +25,7 @@ const {
 const { getCachedPosterFilePathListByVids, processMissingPosterFiles } = require('./poster/poster.js');
 
 app.setName(config.APP_NAME);
+app.disableHardwareAcceleration(); // 彻底关闭无用的GPU硬件加速
 
 const PosterDownloadControllers = {};
 let PosterDownloadTaskIndex = 0;

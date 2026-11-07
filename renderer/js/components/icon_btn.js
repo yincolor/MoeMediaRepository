@@ -1,42 +1,45 @@
 
 
-class IconButton extends HTMLElement{
+class IconButton extends HTMLElement {
 
     static observedAttributes = ['icon-name', 'icon-size', 'layout-type']
-    constructor(){
+    constructor() {
         super();
-        const shadow = this.attachShadow({mode:"open"});
+        const shadow = this.attachShadow({ mode: "open" });
         shadow.appendChild(this.#generateShadowDom());
 
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         console.log(`属性 ${name} 已由 ${oldValue} 变更为 ${newValue}。`);
-        if(name === 'icon-name'){
+        if (name === 'icon-name') {
             this.#setIcon();
             return;
         }
-        if(['icon-size', 'layout-type'].includes(name)){
+        if (['icon-size', 'layout-type'].includes(name)) {
             this.#setStyle();
             return;
         }
     }
 
-    connectedCallback(){ 
-        console.log("Icon-Button 组件已挂载"); 
+    connectedCallback() {
+        console.log("Icon-Button 组件已挂载");
         this.#setIcon();
-        this.#setStyle(); 
+        this.#setStyle();
     }
-    
-    disconnectedCallback(){
-        console.log("Icon-Button 组件已卸载"); 
+
+    disconnectedCallback() {
+        console.log("Icon-Button 组件已卸载");
     }
 
     /**
      * 创建shadow内容
      */
-    #generateShadowDom(){
-        console.log("创建 MyButton 内部组件"); 
+    #generateShadowDom() {
+        console.log("创建 MyButton 内部组件");
+
+        const layoutType = this.getAttribute('layout-type') || 'IconLeftTextRight'; /* IconLeftTextRight, IconTopTextBottom, IconOnly, TextOnly */
+
         const shadowRootElement = document.createElement('div');
         shadowRootElement.classList.add('btn');
 
@@ -45,29 +48,27 @@ class IconButton extends HTMLElement{
 
         const titleDiv = document.createElement('div');
         titleDiv.classList.add('title');
-
         const soltElement = document.createElement('slot');
-
         titleDiv.appendChild(soltElement);
         shadowRootElement.append(iconDiv, titleDiv);
 
         return shadowRootElement;
     }
 
-    #setIcon(){
+    #setIcon() {
         console.log(`设置图标`);
-        
+
         /** @type {HTMLDivElement} */
         const icon = this.shadowRoot.querySelector('.icon')
-        if(icon){
+        if (icon) {
             const iconName = this.getAttribute('icon-name') || "default";
-            icon.style.backgroundImage = `url("../img/icon/${iconName}.svg")`; 
-        }else{
+            icon.style.backgroundImage = `url("../img/icon/${iconName}.svg")`;
+        } else {
             console.log(`icon元素丢失`);
-            
+
         }
     }
-    #setStyle(){
+    #setStyle() {
         const layoutType = this.getAttribute('layout-type') || 'IconLeftTextRight'; /* IconLeftTextRight, IconTopTextBottom, IconOnly, TextOnly */
         const iconSize = this.getAttribute('icon-size') || '1.5em'; /* 20px, 1em ... */
         const baseStyle = `
@@ -75,6 +76,9 @@ class IconButton extends HTMLElement{
                 display: inline-block;
                 box-sizing:border-box;
                 vertical-align:middle;
+                display: inline-flex;
+                justify-content: center; 
+                align-items: center;
             }
             .btn{
                 width: auto;
@@ -84,7 +88,7 @@ class IconButton extends HTMLElement{
                 justify-content: center; 
                 align-items: center;
 
-                padding: var(--padding);
+                /* padding: var(--padding); */
                 gap: var(--gap);
 
                 border-radius: var(--border-radius); 
@@ -117,29 +121,26 @@ class IconButton extends HTMLElement{
                         flex-direction: column;
                     }
                     .title{
-                        diaplay:flex;
+                        display:flex;
                     }
                 `;
                 break;
-            
+
             case 'IconOnly': /* 只显示图标 */
                 layoutStyle = `
-                    .btn {
-                        padding: var(--padding);
-                    }
-                    .title {
-                        diaplay:none;
+                    .title{
+                        display:none;
                     }
                 `;
-                break; 
+                break;
             case 'TextOnly':  /* 只显示文本 */
                 layoutStyle = `
                     .icon {
-                        diaplay:none;
+                        display:none;
                     }
                 `;
-                break; 
-            
+                break;
+
             case 'IconLeftTextRight': /* 图标在左，文本在右 */
             default:
                 layoutStyle = `
@@ -151,7 +152,7 @@ class IconButton extends HTMLElement{
         }
         const sheet = new CSSStyleSheet();
         sheet.replaceSync(baseStyle + layoutStyle);
-        this.shadowRoot.adoptedStyleSheets = [sheet]; 
+        this.shadowRoot.adoptedStyleSheets = [sheet];
     }
 }
 
