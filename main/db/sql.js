@@ -18,6 +18,67 @@ const log = require('../core/log.js');
 let db = null;
 
 /**
+ * 表结构索引 DDL（幂等）：
+ *  - ux_poster_vid_url：t_poster(vid, url) 唯一索引，同时支持按 vid 前缀查询与 INSERT OR IGNORE 去重；
+ *  - ux_playlist_vid_site：t_playlist(vid, site_name) 唯一索引，同时支持按 vid 前缀查询与 UPSERT。
+ * 缺少这两个索引时，更新流程对每条记录都会全表扫描 t_poster / t_playlist（约 50 万行），
+ * 单条记录耗时可达数十至上百毫秒。
+ */
+const INDEX_DDL = [
+    {
+        table: 't_poster',
+        name: 'ux_poster_vid_url',
+        columns: ['vid', 'url'],
+        sql: 'CREATE UNIQUE INDEX IF NOT EXISTS ux_poster_vid_url ON t_poster(vid, url)'
+    },
+    {
+        table: 't_playlist',
+        name: 'ux_playlist_vid_site',
+        columns: ['vid', 'site_name'],
+        sql: 'CREATE UNIQUE INDEX IF NOT EXISTS ux_playlist_vid_site ON t_playlist(vid, site_name)'
+    }
+];
+
+/**
+ * 创建/补齐索引（幂等），仅对已存在的表执行，可在 openDatabase 内部或测试建表后调用
+ * @param {Database} database - 数据库连接对象
+ * @returns {void}
+ */
+function ensureSchemaIndexes(database) {
+    if (!database) throw new Error('数据库连接未初始化');
+
+    const tables = new Set(
+        database.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map(row => row.name)
+    );
+    const indexes = new Set(
+        database.prepare("SELECT name FROM sqlite_master WHERE type = 'index'").all().map(row => row.name)
+    );
+
+    for (const item of INDEX_DDL) {
+        if (!tables.has(item.table) || indexes.has(item.name)) continue;
+        const start = Date.now();
+        const createIndex = () => database.exec(item.sql);
+
+        try {
+            createIndex();
+        } catch (e) {
+            // 历史库可能已存在重复行（旧版本无唯一约束）：保留 id 最大的一条后重建
+            log.warn('db', `创建唯一索引 ${item.name} 失败（${e.message}），将清理 ${item.table} 重复行后重建`);
+            const groupBy = item.columns.join(', ');
+            database.transaction(() => {
+                database.exec(`
+                    DELETE FROM ${item.table}
+                    WHERE id NOT IN (SELECT MAX(id) FROM ${item.table} GROUP BY ${groupBy})
+                `);
+                createIndex();
+            })();
+        }
+
+        log.info('db', `已创建索引 ${item.name}（${item.table}），耗时 ${Date.now() - start} ms`);
+    }
+}
+
+/**
  * URL 安全的 Base64 解码函数
  * @param {string} str - 需要解码的 Base64 字符串
  * @returns {string} - 解码后的原始字符串，空值返回空字符串
@@ -44,6 +105,7 @@ function openDatabase(dbFilePath) {
         db = new Database(dbFilePath);
         db.pragma('journal_mode = WAL');
         db.pragma('busy_timeout = 5000');
+        ensureSchemaIndexes(db);
         log.info('db', `数据库连接已打开: ${dbFilePath}`);
         return db;
     } catch (e) {
@@ -349,6 +411,7 @@ function getLastUpdateTime() {
 module.exports = {
     openDatabase,
     closeDatabase,
+    ensureSchemaIndexes,
     base64Decode,
     getInfosByVidList,
     getPostersByVidList,

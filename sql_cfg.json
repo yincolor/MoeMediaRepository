@@ -38,5 +38,9 @@
                 { "name": "url_list", "type": "TEXT", "comment": "播放链接组的格式化文本（影视名称和m3u8文件URL的格式化文本，存储的是使用base64编码后的字符串）" }
             ]
         }
+    ],
+    "indexes": [
+        { "name": "ux_poster_vid_url", "table": "t_poster", "unique": true, "columns": ["vid", "url"], "comment": "同一 vid 下海报 URL 不重复，同时支持按 vid 查询" },
+        { "name": "ux_playlist_vid_site", "table": "t_playlist", "unique": true, "columns": ["vid", "site_name"], "comment": "同一 vid + 站点只有一条播放链接，同时支持按 vid 查询与 UPSERT" }
     ]
 }

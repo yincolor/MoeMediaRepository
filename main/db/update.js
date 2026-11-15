@@ -235,13 +235,48 @@ function updateDatabaseWithConnection(records, database) {
     let updatedCount = 0;
     let insertedCount = 0;
 
+    // 预编译语句：避免在循环内重复 prepare
+    const statementCache = new Map();
+    const getStatement = (sql) => {
+        let stmt = statementCache.get(sql);
+        if (!stmt) {
+            stmt = database.prepare(sql);
+            statementCache.set(sql, stmt);
+        }
+        return stmt;
+    };
+
+    const selectInfoStmt = database.prepare(`
+        SELECT vid, media_type, subname, tags, actor, director, writer,
+               pubdate, area, year, time, name_en, letter, intro
+        FROM t_info WHERE vid = ?
+    `);
+
+    const insertInfoStmt = database.prepare(`
+        INSERT INTO t_info (
+            vid, media_type, name, subname, name_en, letter,
+            tags, actor, director, writer,
+            pubdate, area, year, time, intro
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // 唯一索引 ux_poster_vid_url(vid, url)：同一 vid 下 url 不重复，无需先查询
+    const insertPosterStmt = database.prepare(`
+        INSERT OR IGNORE INTO t_poster (vid, url) VALUES (?, ?)
+    `);
+
+    // 唯一索引 ux_playlist_vid_site(vid, site_name)：存在则更新，内容未变时跳过写入
+    const upsertPlaylistStmt = database.prepare(`
+        INSERT INTO t_playlist (vid, site_name, url_list) VALUES (?, ?, ?)
+        ON CONFLICT(vid, site_name) DO UPDATE SET url_list = excluded.url_list
+        WHERE t_playlist.url_list IS NOT excluded.url_list
+    `);
+
     const upsert = database.transaction((cleanedList) => {
         for (const item of cleanedList) {
             const nameEncoded = base64Encode(item.name);
 
-            const existing = database.prepare(`
-                SELECT * FROM t_info WHERE vid = ?
-            `).get(item.vid);
+            const existing = selectInfoStmt.get(item.vid);
 
             if (existing) {
                 const updates = [];
@@ -313,49 +348,23 @@ function updateDatabaseWithConnection(records, database) {
 
                 if (updates.length > 0) {
                     params.push(existing.vid);
-                    database.prepare(`UPDATE t_info SET ${updates.join(', ')} WHERE vid = ?`).run(...params);
+                    getStatement(`UPDATE t_info SET ${updates.join(', ')} WHERE vid = ?`).run(...params);
                     updatedCount++;
                 }
 
-                // 海报：新增缺失的 URL
-                if (item.posters.length > 0) {
-                    const existingUrls = database.prepare(`
-                        SELECT url FROM t_poster WHERE vid = ?
-                    `).all(existing.vid).map(r => r.url);
-                    for (const url of item.posters) {
-                        if (!existingUrls.includes(url)) {
-                            database.prepare(`INSERT INTO t_poster (vid, url) VALUES (?, ?)`).run(existing.vid, url);
-                        }
-                    }
+                // 海报：唯一索引 (vid, url) 保证不重复，无需先查询
+                for (const url of item.posters) {
+                    insertPosterStmt.run(existing.vid, url);
                 }
 
-                // 播放链接：按站点新增或更新
+                // 播放链接：按 (vid, site_name) 唯一索引 UPSERT，内容未变则不写入
                 for (const [siteName, urlList] of Object.entries(item.playlist)) {
-                    const urlListEncoded = base64Encode(urlList);
-                    const existingPlaylist = database.prepare(`
-                        SELECT id FROM t_playlist WHERE vid = ? AND site_name = ?
-                    `).get(existing.vid, siteName);
-
-                    if (existingPlaylist) {
-                        database.prepare(`
-                            UPDATE t_playlist SET url_list = ? WHERE id = ?
-                        `).run(urlListEncoded, existingPlaylist.id);
-                    } else {
-                        database.prepare(`
-                            INSERT INTO t_playlist (vid, site_name, url_list) VALUES (?, ?, ?)
-                        `).run(existing.vid, siteName, urlListEncoded);
-                    }
+                    upsertPlaylistStmt.run(existing.vid, siteName, base64Encode(urlList));
                 }
             } else {
                 const subnameEncoded = item.subname.map(s => base64Encode(s)).join(',');
 
-                database.prepare(`
-                    INSERT INTO t_info (
-                        vid, media_type, name, subname, name_en, letter,
-                        tags, actor, director, writer,
-                        pubdate, area, year, time, intro
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `).run(
+                insertInfoStmt.run(
                     item.vid,
                     item.media_type || '',
                     nameEncoded,
@@ -374,13 +383,11 @@ function updateDatabaseWithConnection(records, database) {
                 );
 
                 for (const url of item.posters) {
-                    database.prepare(`INSERT INTO t_poster (vid, url) VALUES (?, ?)`).run(item.vid, url);
+                    insertPosterStmt.run(item.vid, url);
                 }
 
                 for (const [siteName, urlList] of Object.entries(item.playlist)) {
-                    database.prepare(`
-                        INSERT INTO t_playlist (vid, site_name, url_list) VALUES (?, ?, ?)
-                    `).run(item.vid, siteName, base64Encode(urlList));
+                    upsertPlaylistStmt.run(item.vid, siteName, base64Encode(urlList));
                 }
 
                 insertedCount++;

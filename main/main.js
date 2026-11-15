@@ -35,6 +35,7 @@ let mainWindow = null;
 let db = null;
 let updateWorker = null;
 let updateStartTimer = null;
+let isQuitCleanupDone = false;
 
 /**
  * 应用根目录：开发环境为项目根目录，打包后为 process.resourcesPath
@@ -156,9 +157,10 @@ function startUpdateWorker() {
 }
 
 /**
- * 停止更新线程：先发送 stop 指令让其清理，超时后强制 terminate
+ * 停止更新线程：先发送 stop 指令让其清理，超时后强制 terminate。
+ * 返回 Promise，在更新线程退出后 resolve，供退出流程等待其释放数据库连接。
  */
-function stopUpdateWorker() {
+async function stopUpdateWorker() {
     if (!updateWorker) return;
     const worker = updateWorker;
     updateWorker = null;
@@ -166,17 +168,31 @@ function stopUpdateWorker() {
     try {
         worker.postMessage({ type: 'stop' });
     } catch (e) {
-        // 忽略发送失败
+        // 消息端口已关闭，说明 worker 已经退出
+        return;
     }
 
-    const killTimer = setTimeout(() => {
-        try {
-            worker.terminate();
-        } catch (e) {
-            // 忽略终止失败
+    await new Promise((resolve) => {
+        let settled = false;
+
+        function done() {
+            if (settled) return;
+            settled = true;
+            clearTimeout(killTimer);
+            resolve();
         }
-    }, 1000);
-    if (killTimer.unref) killTimer.unref();
+
+        const killTimer = setTimeout(() => {
+            try {
+                worker.terminate().catch(() => {}).finally(done);
+            } catch (e) {
+                done();
+            }
+        }, 3000);
+        if (killTimer.unref) killTimer.unref();
+
+        worker.once('exit', done);
+    });
 }
 
 /**
@@ -230,14 +246,17 @@ function abortAllPosterDownloads() {
 }
 
 /**
- * 退出前清理：清除更新定时器并停止更新线程
+ * 退出前清理：清除更新定时器、停止并等待更新线程退出、关闭数据库连接。
+ * 必须等 worker 先释放数据库连接，主进程再作为最后一个连接关闭，
+ * 这样 WAL 模式下 SQLite 才会执行最终 checkpoint 并删除 -wal/-shm 文件。
  */
-function cleanup() {
+async function cleanup() {
     if (updateStartTimer) {
         clearTimeout(updateStartTimer);
         updateStartTimer = null;
     }
-    stopUpdateWorker();
+    await stopUpdateWorker();
+    closeDatabase();
 }
 
 /**
@@ -246,11 +265,7 @@ function cleanup() {
 function registerIpcHandlers() {
 
     ipcMain.on('quit-app', async () => {
-        cleanup();
-        for (const win of BrowserWindow.getAllWindows()) {
-            win.close();
-        }
-        closeDatabase();
+        app.quit();
     });
 
     ipcMain.on('goto-page', (ev, oldPage, newPage) => {
@@ -352,8 +367,17 @@ async function main() {
         app.quit();
     });
 
-    app.on('before-quit', () => {
-        cleanup();
+    app.on('before-quit', (event) => {
+        if (isQuitCleanupDone) return;
+        event.preventDefault();
+        isQuitCleanupDone = true;
+        cleanup()
+            .catch((error) => {
+                log.error('app', `退出清理失败: ${error.message}`);
+            })
+            .finally(() => {
+                app.quit();
+            });
     });
 
     ensureUserDataDirs();
